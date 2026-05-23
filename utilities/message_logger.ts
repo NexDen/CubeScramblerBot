@@ -11,7 +11,7 @@ var COMMANDNAME = colors.Bright + colors.FgCyan //46-37
 var RESET = colors.Reset
 
 const client = global.client
-config = global.config
+const config = global.config
 
 const typeTag = (color, label) => `${color}[${label}]${RESET}`
 

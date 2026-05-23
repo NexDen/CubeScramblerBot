@@ -1,4 +1,4 @@
-var colors = require("./utilities/colors.js")
+var colors = require("./utilities/colors.ts")
 
 const debug = false;
 
@@ -33,7 +33,7 @@ if (!fs.existsSync("./commands")) {
     fs.mkdirSync("./commands")
 }
 
-var { Client, Collection, GatewayIntentBits, ActivityType, Events, EmbedBuilder, NewsChannel } = require("discord.js")
+import { Client, Collection, GatewayIntentBits, ActivityType, Events, EmbedBuilder } from "discord.js";
 
 
 
@@ -46,14 +46,11 @@ const client = new Client({
 	],
 })
 
-global.client = client
-global.debug  = debug
-
 const cron = require("node-cron")
 
-const scrambler = require("./utilities/scramble_creator.js")
+const scrambler = require("./utilities/scramble_handler.ts")
 
-client.once(Events.ClientReady, async (readyClient) => { 
+client.once(Events.ClientReady, async (readyClient: Client) => { 
     console.log(`  
 :::     ::: ::::    ::: :::::::::: :::    ::: 
 :+:     :+: :+:+:   :+: :+:        :+:    :+: 
@@ -70,8 +67,8 @@ client.once(Events.ClientReady, async (readyClient) => {
         console.log(`${colors.Bright}${colors.FgRed}PROD MODE${colors.Reset}`)
     }
 
-    console.log(`${colors.Bright}Connected to ${colors.Reset}${colors.FgYellow}${readyClient.user.tag}!${colors.Reset}`)
-    client.user.setActivity({
+    console.log(`${colors.Bright}Connected to ${colors.Reset}${colors.FgYellow}${readyClient.user?.tag}!${colors.Reset}`)
+    client.user?.setActivity({
         type: ActivityType.Custom,
         name: "küp scramble yapıyo",
         state: config.activityName
@@ -80,20 +77,23 @@ client.once(Events.ClientReady, async (readyClient) => {
 
     
 
-    cron.schedule("0 19 * * *", async () => {
-        var newScramble = scrambler.getRandomScramble();
-        var messageGuild = client.guilds.cache.find(guild => guild.id === config.scramble_guild_id)
-        console.log(messageGuild.name)
-        var messageChannel = messageGuild.channels.cache.find(channel => channel.id === config.scramble_channel_id)
-        console.log(messageChannel.name)
+    cron.schedule("20 19 * * *", async () => {
+
+        var newScramble = scrambler.getScramble(3);
+        var messageGuild = client.guilds.cache.find(guild => guild.id === config.daily_scramble_guild_id)
+        console.log(messageGuild?.name)
+        var messageChannel = messageGuild?.channels.cache.find(channel => channel.id === config.scramble_channel_id)
+        console.log(messageChannel?.name)
 
         var embed = new EmbedBuilder()
             .setTitle("Günün Karıştırması!")
             .setDescription(newScramble)
             .setColor("#1f1e33")
             .setFooter({text: "zamanlarınızı atın!"})
-
-        await messageChannel.send({embeds: [embed]});
+        
+        if (messageChannel?.isSendable()) {
+            await messageChannel.send({embeds: [embed]});
+        }
         
     })
 
@@ -104,7 +104,7 @@ client.once(Events.ClientReady, async (readyClient) => {
 client.commands = new Collection();
 
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(commandsPath).filter((file: string) => file.endsWith('.ts'));
 
 if (commandFiles.length === 0) {
     console.log(`${colors.warningText("UYARI")} Herhangi bir komut bulunamadı!`);
@@ -119,6 +119,7 @@ else {
         if (!("data" in command)){
             console.log(`${colors.warningText("UYARI")} ${filePath} dosyasında "data" alanı bulunamadı!`);
         }
+        client.commands.set(command.data.name, command);
     }
 }
 
@@ -141,7 +142,6 @@ const { handle_member_add, handle_member_leave } = require("./handlers/handle_me
 const { handle_ctx_menus } = require("./handlers/handle_ctx_menus.js")
 
 const { handle_messages } = require("./handlers/handle_messages.js")
-const { log } = require("console")
 
 
 client.on("interactionCreate", async interaction => {
@@ -149,9 +149,9 @@ client.on("interactionCreate", async interaction => {
     
     if (interaction.isStringSelectMenu()) handle_string_select_menu(interaction)
     
-    else if (interaction.isModalSubmit()) handle_modal(interaction)
-    
-    else if (interaction.isButton()) handle_button(interaction)
+    else if (interaction.isModalSubmit()) handle_modals(interaction)
+
+    else if (interaction.isButton()) handle_buttons(interaction)
     
     if (interaction.isAnySelectMenu()){
         if (interaction.isRoleSelectMenu()) handle_role_select_menu(interaction)
@@ -159,9 +159,9 @@ client.on("interactionCreate", async interaction => {
         else if (interaction.isChannelSelectMenu()) handle_channel_select_menu(interaction)
         else if (interaction.isMentionableSelectMenu()) handle_mentionable_select_menu(interaction)
     }
-    else if (interaction.isContextMenuCommand()) handle_ctx_menu(interaction)
+    else if (interaction.isContextMenuCommand()) handle_ctx_menus(interaction)
 
-    else if (interaction.isChatInputCommand()) handle_command(interaction)
+    else if (interaction.isChatInputCommand()) handle_commands(interaction)
 })
 
 client.on("guildCreate", async guild => {
@@ -179,7 +179,7 @@ client.on("guildMemberRemove", async member => {
 })
 
 client.on("messageCreate", async message =>{
-    handle_messages(message)
+    //handle_messages(message)
 })
 
 client.on("messageUpdate", async (oldMessage, newMessage) =>{

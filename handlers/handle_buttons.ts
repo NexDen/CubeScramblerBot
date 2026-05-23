@@ -1,4 +1,3 @@
-const client = global.client
 var colors = require("../utilities/colors.js")
 var config = global.config
 

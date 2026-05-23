@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"process.exit\\(0\\)\")",
+      "Bash(powershell -NoProfile -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\")",
+      "Bash(node --import tsx -e \"const s=require\\('./utilities/scramblers/3x3x3.js'\\); console.log\\('3x3 keys:', Object.keys\\(s\\)\\); if \\(s.getRandomScramble\\) console.log\\('3x3 scramble:', s.getRandomScramble\\(\\)\\);\")",
+      "Bash(echo \"=== exit $? ===\")"
+    ]
+  }
+}

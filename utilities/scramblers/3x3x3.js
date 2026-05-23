@@ -10,8 +10,8 @@ Compiled to Javascript using GWT.
 
 */
 
-const min2phase = require("./min2phase")
-const mathlib = require("./mathlib")
+const min2phase = require("../min2phase")
+const mathlib = require("../mathlib")
 
 var Ux1 = 0,
     Ux2 = 1,
